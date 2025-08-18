@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 )
 
 // App struct
@@ -21,7 +20,10 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+func (a *App) Split(secret string, shards int, shardsNeeded int, output string) string {
+	out, err := shamirSplit([]byte(secret), shards, shardsNeeded, output)
+	if err != nil {
+		return "error: " + err.Error()
+	}
+	return out
 }
