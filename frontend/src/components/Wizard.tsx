@@ -16,7 +16,9 @@ export default function Wizard() {
         <Button onClick={() => setWorkflow(null)}>Back</Button>
       </div>}
     </div>
-    {workflow === "bind" && <Bind />}
-    {workflow === "split" && <Split />}
+    <div className="flex flex-col gap-4 items-center justify-center">
+      {workflow === "bind" && <Bind />}
+      {workflow === "split" && <Split />}
+    </div>
   </div>;
 }
