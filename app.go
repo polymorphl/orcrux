@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"orcrux/shamir"
 )
 
 // App struct
@@ -21,7 +22,7 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) Split(secret string, shards int, shardsNeeded int, output string) string {
-	out, err := shamirSplit([]byte(secret), shards, shardsNeeded, output)
+	out, err := shamir.Split([]byte(secret), shards, shardsNeeded, output)
 	if err != nil {
 		return "error: " + err.Error()
 	}
@@ -29,7 +30,7 @@ func (a *App) Split(secret string, shards int, shardsNeeded int, output string) 
 }
 
 func (a *App) Recompose(shards []string) string {
-	out, err := shamirRecompose(shards)
+	out, err := shamir.Recompose(shards)
 	if err != nil {
 		return "error: " + err.Error()
 	}

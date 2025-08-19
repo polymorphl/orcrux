@@ -1,4 +1,4 @@
-package main
+package shamir
 
 import (
 	"encoding/base64"
@@ -109,7 +109,7 @@ func encodeShare(data []byte, format string) string {
 //
 // Note: This implementation uses GF(2^8) arithmetic with irreducible polynomial 0x11b
 // for polynomial evaluation, which is standard in cryptographic applications.
-func shamirSplit(secret []byte, n, t int, output string) (string, error) {
+func Split(secret []byte, n, t int, output string) (string, error) {
 	if err := validateShamirParams(secret, n, t, output); err != nil {
 		return "", err
 	}
@@ -200,7 +200,7 @@ func gfMul(a, b byte) byte {
 //   - Requires at least t shares to reconstruct the secret
 //   - Any subset of shares less than t reveals no information about the secret
 //   - The reconstruction is deterministic given the same shares
-func shamirRecompose(shards []string) ([]byte, error) {
+func Recompose(shards []string) ([]byte, error) {
 	if len(shards) == 0 {
 		return nil, errors.New("no shards provided")
 	}
