@@ -3,6 +3,7 @@ import { Recompose as RecomposeFn } from "../../wailsjs/go/main/App";
 
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { Icon } from "./Icon";
 
 export default function Bind() {
   const [shards, setShards] = useState(["", ""])
@@ -21,9 +22,9 @@ export default function Bind() {
   }
 
   return <div className="mt-4">
-    <Button onClick={() => setShards(shards.slice(0, -1))} disabled={shards.length <= 2}>Remove shard</Button>
-    <Button onClick={onReset}>Reset</Button>
-    <Button onClick={() => setShards([...shards, ""])} disabled={shards.length >= 255}>Add shard</Button>
+    <Button onClick={() => setShards(shards.slice(0, -1))} disabled={shards.length <= 2}><Icon icon="Remove" />Remove shard</Button>
+    <Button onClick={onReset}><Icon icon="Reset" />Reset</Button>
+    <Button onClick={() => setShards([...shards, ""])} disabled={shards.length >= 255}><Icon icon="Add" />Add shard</Button>
     <div className="grid grid-cols-2 gap-2 mt-4">
       {shards.map((shard, i) => (
         <div key={i}>
@@ -31,7 +32,7 @@ export default function Bind() {
         </div>
       ))}
     </div>
-    <Button onClick={onRecompose} className="mt-4" disabled={shards.length < 2}>Recompose</Button>
+    <Button onClick={onRecompose} className="mt-4" disabled={shards.length < 2}><Icon icon="Bind" />Recompose</Button>
     {result && <div className="mt-4">
       <Textarea value={result} readOnly />
     </div>}

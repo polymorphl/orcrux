@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "icons:generate": "npx @svgr/cli src/svgs --out-dir src/components/icons --typescript"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",

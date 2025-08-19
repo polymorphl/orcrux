@@ -6,6 +6,7 @@ import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { Icon } from "./Icon";
 
 export default function Split() {
   const [secret, setSecret] = useState<string>('test')
@@ -39,7 +40,7 @@ export default function Split() {
             <Label htmlFor="hex">Hex</Label>
           </div>
         </RadioGroup>
-        <Button onClick={handleSplit} disabled={!secret || !shards || !shardsNeeded}>Split</Button>
+        <Button onClick={handleSplit} disabled={!secret || !shards || !shardsNeeded}><Icon icon="Split" />Split</Button>
       </div>
       {result && <div className="grid w-full max-w-sm items-center gap-3">
         <Label htmlFor="result">Result</Label>
