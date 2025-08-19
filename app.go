@@ -27,3 +27,11 @@ func (a *App) Split(secret string, shards int, shardsNeeded int, output string) 
 	}
 	return out
 }
+
+func (a *App) Recompose(shards []string) string {
+	out, err := shamirRecompose(shards)
+	if err != nil {
+		return "error: " + err.Error()
+	}
+	return string(out)
+}

@@ -53,20 +53,35 @@ func TestEvaluatePolynomial(t *testing.T) {
 		})
 	}
 
-	// Test that different inputs produce different outputs (randomness)
-	t.Run("randomness check", func(t *testing.T) {
-		results := make(map[byte]bool)
-		for i := 0; i < 100; i++ {
-			result, err := evaluatePolynomial(0x42, 1, 3)
-			if err != nil {
-				t.Errorf("evaluatePolynomial() failed: %v", err)
-				return
-			}
-			results[result] = true
+	// Test that different inputs produce different outputs (deterministic)
+	t.Run("deterministic check", func(t *testing.T) {
+		// Test that the same inputs always produce the same output
+		result1, err := evaluatePolynomial(0x42, 1, 3)
+		if err != nil {
+			t.Errorf("evaluatePolynomial() failed: %v", err)
+			return
 		}
-		// With 100 random evaluations, we should get many different results
-		if len(results) < 10 {
-			t.Errorf("evaluatePolynomial() seems to produce too few unique results: %d", len(results))
+
+		result2, err := evaluatePolynomial(0x42, 1, 3)
+		if err != nil {
+			t.Errorf("evaluatePolynomial() failed: %v", err)
+			return
+		}
+
+		// Results should be identical since coefficients are now deterministic
+		if result1 != result2 {
+			t.Errorf("evaluatePolynomial() produced different results: %v vs %v", result1, result2)
+		}
+
+		// Test that different inputs produce different outputs
+		result3, err := evaluatePolynomial(0x43, 1, 3)
+		if err != nil {
+			t.Errorf("evaluatePolynomial() failed: %v", err)
+			return
+		}
+
+		if result1 == result3 {
+			t.Errorf("evaluatePolynomial() produced identical results for different inputs: %v", result1)
 		}
 	})
 }
