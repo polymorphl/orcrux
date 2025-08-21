@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
-import { CircleIcon } from "lucide-react"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
@@ -25,7 +25,7 @@ function RadioGroupItem({
     <RadioGroupPrimitive.Item
       data-slot="radio-group-item"
       className={cn(
-        "border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        "border-crystal-500 text-crystal-200 focus-visible:border-crystal-400 focus-visible:ring-crystal-400/50 aria-invalid:ring-red-500/20 dark:aria-invalid:ring-red-500/40 aria-invalid:border-red-500 bg-crystal-700/50 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-all duration-200 ease-out outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer hover:scale-105 hover:border-crystal-400 hover:bg-crystal-600/60",
         className
       )}
       {...props}
@@ -33,8 +33,31 @@ function RadioGroupItem({
       <RadioGroupPrimitive.Indicator
         data-slot="radio-group-indicator"
         className="relative flex items-center justify-center"
+        asChild
       >
-        <CircleIcon className="fill-primary absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2" />
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{
+            type: "spring",
+            stiffness: 500,
+            damping: 30,
+            duration: 0.3
+          }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 25,
+              delay: 0.1
+            }}
+            className="w-2 h-2 bg-crystal-300 rounded-full shadow-sm"
+          />
+        </motion.div>
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>
   )

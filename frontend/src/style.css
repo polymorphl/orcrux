@@ -60,6 +60,15 @@ body {
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    --color-crystal-50: #ECFFFD;
+    --color-crystal-100: #C8FFFA;
+    --color-crystal-200: #6CFFF3;
+    --color-crystal-300: #00F7E7;
+    --color-crystal-400: #12CBB7;
+    --color-crystal-500: #0A8D7F;
+    --color-crystal-600: #0B1A1A;
+    --color-crystal-700: #081212;
 }
 
 :root {
@@ -131,12 +140,6 @@ body {
     --sidebar-ring: oklch(0.556 0 0);
 }
 
-@layer base {
-    * {
-        @apply border-border outline-ring/50;
-    }
-
-    body {
-        @apply bg-background text-foreground;
-    }
+body {
+    @apply bg-background text-foreground;
 }
