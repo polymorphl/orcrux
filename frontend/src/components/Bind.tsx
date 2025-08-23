@@ -68,7 +68,7 @@ export default function Bind() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="mt-4"
+      className="flex flex-col items-center justify-between gap-3 p-4 bg-gradient-to-br from-crystal-700/40 to-crystal-600/30 rounded-sm border border-crystal-500/20 shadow-lg backdrop-blur-sm"
     >
       <motion.div variants={itemVariants} className="flex items-center justify-between gap-4 p-4 bg-crystal-700/20 rounded-sm border border-crystal-500/20">
         <div className="flex items-center gap-2">

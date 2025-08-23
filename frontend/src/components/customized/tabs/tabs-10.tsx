@@ -60,7 +60,7 @@ export default function TabsSharp({ tabs, initialTab }: TabSharpProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="flex items-center justify-between gap-3 p-4 bg-gradient-to-br from-crystal-700/40 to-crystal-600/30 rounded-sm border border-crystal-500/20 shadow-lg backdrop-blur-sm"
+              className="w-full"
             >
               {tabs.find(tab => tab.value === activeTab)?.content}
             </motion.div>
