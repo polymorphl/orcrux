@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"orcrux/shamir"
 )
 
@@ -21,18 +22,52 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
+// Response represents the standard response format
+type Response struct {
+	Error *string     `json:"error"`
+	Data  interface{} `json:"data"`
+}
+
 func (a *App) Split(secret string, shards int, shardsNeeded int, output string) string {
 	out, err := shamir.Split([]byte(secret), shards, shardsNeeded, output)
+
+	response := Response{}
 	if err != nil {
-		return "error: " + err.Error()
+		errorMsg := err.Error()
+		response.Error = &errorMsg
+		response.Data = nil
+	} else {
+		response.Error = nil
+		response.Data = out
 	}
-	return out
+
+	jsonResponse, jsonErr := json.Marshal(response)
+	if jsonErr != nil {
+		// Fallback to simple error format if JSON marshaling fails
+		return jsonErr.Error()
+	}
+
+	return string(jsonResponse)
 }
 
 func (a *App) Recompose(shards []string) string {
 	out, err := shamir.Recompose(shards)
+
+	response := Response{}
 	if err != nil {
-		return "error: " + err.Error()
+		errorMsg := err.Error()
+		response.Error = &errorMsg
+		response.Data = nil
+	} else {
+		response.Error = nil
+		response.Data = string(out)
 	}
-	return string(out)
+
+	jsonResponse, jsonErr := json.Marshal(response)
+	if jsonErr != nil {
+		// Fallback to simple error format if JSON marshaling fails
+		return jsonErr.Error()
+	}
+
+	return string(jsonResponse)
 }

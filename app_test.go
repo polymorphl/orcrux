@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -120,20 +121,33 @@ func TestAppSplit(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := app.Split(tt.secret, tt.shards, tt.shardsNeeded, tt.output)
 
+			// Parse JSON response
+			var response Response
+			err := json.Unmarshal([]byte(result), &response)
+			if err != nil {
+				t.Fatalf("Failed to parse JSON response: %v, response: %s", err, result)
+			}
+
 			if tt.expectError {
-				if !strings.HasPrefix(result, "error: ") {
-					t.Errorf("Split() should have returned error, got: %s", result)
+				if response.Error == nil {
+					t.Errorf("Split() should have returned error, got: %+v", response)
 				}
 				return
 			}
 
-			if strings.HasPrefix(result, "error: ") {
-				t.Errorf("Split() returned unexpected error: %s", result)
+			if response.Error != nil {
+				t.Errorf("Split() returned unexpected error: %s", *response.Error)
 				return
 			}
 
 			// Verify the result format
-			lines := strings.Split(strings.TrimSpace(result), "\n")
+			dataStr, ok := response.Data.(string)
+			if !ok {
+				t.Errorf("Split() data field is not a string: %T", response.Data)
+				return
+			}
+
+			lines := strings.Split(strings.TrimSpace(dataStr), "\n")
 			if len(lines) != tt.expectedLines {
 				t.Errorf("Split() returned %d lines, expected %d", len(lines), tt.expectedLines)
 			}
@@ -169,12 +183,23 @@ func TestAppRecompose(t *testing.T) {
 
 	// First create some valid shares to test with
 	secret := "test secret for recompose"
-	shares := app.Split(secret, 5, 3, "hex")
-	if strings.HasPrefix(shares, "error: ") {
-		t.Fatalf("Failed to create test shares: %s", shares)
+	sharesResult := app.Split(secret, 5, 3, "hex")
+
+	var sharesResponse Response
+	err := json.Unmarshal([]byte(sharesResult), &sharesResponse)
+	if err != nil {
+		t.Fatalf("Failed to parse shares JSON response: %v", err)
+	}
+	if sharesResponse.Error != nil {
+		t.Fatalf("Failed to create test shares: %s", *sharesResponse.Error)
 	}
 
-	shareLines := strings.Split(strings.TrimSpace(shares), "\n")
+	sharesStr, ok := sharesResponse.Data.(string)
+	if !ok {
+		t.Fatalf("Shares data is not a string: %T", sharesResponse.Data)
+	}
+
+	shareLines := strings.Split(strings.TrimSpace(sharesStr), "\n")
 	if len(shareLines) < 3 {
 		t.Fatalf("Expected at least 3 shares, got %d", len(shareLines))
 	}
@@ -233,31 +258,48 @@ func TestAppRecompose(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := app.Recompose(tt.shards)
 
+			// Parse JSON response
+			var response Response
+			err := json.Unmarshal([]byte(result), &response)
+			if err != nil {
+				t.Fatalf("Failed to parse JSON response: %v, response: %s", err, result)
+			}
+
 			if tt.expectError {
-				if !strings.HasPrefix(result, "error: ") {
-					t.Errorf("Recompose() should have returned error, got: %s", result)
+				if response.Error == nil {
+					t.Errorf("Recompose() should have returned error, got: %+v", response)
 				}
 				return
 			}
 
-			if strings.HasPrefix(result, "error: ") {
-				t.Errorf("Recompose() returned unexpected error: %s", result)
+			if response.Error != nil {
+				t.Errorf("Recompose() returned unexpected error: %s", *response.Error)
 				return
 			}
 
 			// For insufficient shares, we expect a wrong result (not an error)
 			if tt.name == "insufficient shares" {
-				if result == secret {
+				dataStr, ok := response.Data.(string)
+				if !ok {
+					t.Errorf("Recompose() data field is not a string: %T", response.Data)
+					return
+				}
+				if dataStr == secret {
 					t.Logf("Note: Reconstruction with insufficient shares produced correct result (this may indicate a security issue)")
 				} else {
-					t.Logf("Expected wrong result with insufficient shares: got %q, want %q", result, secret)
+					t.Logf("Expected wrong result with insufficient shares: got %q, want %q", dataStr, secret)
 				}
 				return
 			}
 
 			// For valid reconstructions, verify the result
-			if result != secret {
-				t.Errorf("Recompose() failed: got %q, want %q", result, secret)
+			dataStr, ok := response.Data.(string)
+			if !ok {
+				t.Errorf("Recompose() data field is not a string: %T", response.Data)
+				return
+			}
+			if dataStr != secret {
+				t.Errorf("Recompose() failed: got %q, want %q", dataStr, secret)
 			}
 		})
 	}
@@ -269,12 +311,22 @@ func TestAppRecomposeConsistency(t *testing.T) {
 	secret := "consistency test secret"
 
 	// Create shares
-	shares := app.Split(secret, 6, 3, "hex")
-	if strings.HasPrefix(shares, "error: ") {
-		t.Fatalf("Failed to create test shares: %s", shares)
+	sharesResult := app.Split(secret, 6, 3, "hex")
+	var sharesResponse Response
+	err := json.Unmarshal([]byte(sharesResult), &sharesResponse)
+	if err != nil {
+		t.Fatalf("Failed to parse shares JSON response: %v", err)
+	}
+	if sharesResponse.Error != nil {
+		t.Fatalf("Failed to create test shares: %s", *sharesResponse.Error)
 	}
 
-	shareLines := strings.Split(strings.TrimSpace(shares), "\n")
+	sharesStr, ok := sharesResponse.Data.(string)
+	if !ok {
+		t.Fatalf("Shares data is not a string: %T", sharesResponse.Data)
+	}
+
+	shareLines := strings.Split(strings.TrimSpace(sharesStr), "\n")
 
 	// Test reconstruction with different subsets of shares
 	subsets := [][]string{
@@ -287,11 +339,26 @@ func TestAppRecomposeConsistency(t *testing.T) {
 	results := make([]string, len(subsets))
 	for i, subset := range subsets {
 		result := app.Recompose(subset)
-		if strings.HasPrefix(result, "error: ") {
-			t.Errorf("Recompose() failed for subset %d: %s", i, result)
+
+		var response Response
+		err := json.Unmarshal([]byte(result), &response)
+		if err != nil {
+			t.Errorf("Failed to parse JSON response for subset %d: %v", i, err)
 			continue
 		}
-		results[i] = result
+
+		if response.Error != nil {
+			t.Errorf("Recompose() failed for subset %d: %s", i, *response.Error)
+			continue
+		}
+
+		dataStr, ok := response.Data.(string)
+		if !ok {
+			t.Errorf("Recompose() data field is not a string for subset %d: %T", i, response.Data)
+			continue
+		}
+
+		results[i] = dataStr
 	}
 
 	// All reconstructions should produce the same result
@@ -313,34 +380,72 @@ func TestAppRecomposeMixedFormats(t *testing.T) {
 
 	// Test hex format
 	secretHex := "hex test secret"
-	sharesHex := app.Split(secretHex, 4, 2, "hex")
-	if strings.HasPrefix(sharesHex, "error: ") {
-		t.Fatalf("Failed to create hex shares: %s", sharesHex)
+	sharesHexResult := app.Split(secretHex, 4, 2, "hex")
+	var sharesHexResponse Response
+	err := json.Unmarshal([]byte(sharesHexResult), &sharesHexResponse)
+	if err != nil {
+		t.Fatalf("Failed to parse hex shares JSON response: %v", err)
+	}
+	if sharesHexResponse.Error != nil {
+		t.Fatalf("Failed to create hex shares: %s", *sharesHexResponse.Error)
 	}
 
 	// Test base64 format
 	secretBase64 := "base64 test secret"
-	sharesBase64 := app.Split(secretBase64, 4, 2, "base64")
-	if strings.HasPrefix(sharesBase64, "error: ") {
-		t.Fatalf("Failed to create base64 shares: %s", sharesBase64)
+	sharesBase64Result := app.Split(secretBase64, 4, 2, "base64")
+	var sharesBase64Response Response
+	err = json.Unmarshal([]byte(sharesBase64Result), &sharesBase64Response)
+	if err != nil {
+		t.Fatalf("Failed to parse base64 shares JSON response: %v", err)
+	}
+	if sharesBase64Response.Error != nil {
+		t.Fatalf("Failed to create base64 shares: %s", *sharesBase64Response.Error)
 	}
 
 	// Test hex reconstruction
-	shareLinesHex := strings.Split(strings.TrimSpace(sharesHex), "\n")
+	sharesHexStr, ok := sharesHexResponse.Data.(string)
+	if !ok {
+		t.Fatalf("Hex shares data is not a string: %T", sharesHexResponse.Data)
+	}
+	shareLinesHex := strings.Split(strings.TrimSpace(sharesHexStr), "\n")
 	resultHex := app.Recompose(shareLinesHex[:2])
-	if strings.HasPrefix(resultHex, "error: ") {
-		t.Errorf("Hex reconstruction failed: %s", resultHex)
-	} else if resultHex != secretHex {
-		t.Errorf("Hex reconstruction failed: got %q, want %q", resultHex, secretHex)
+
+	var resultHexResponse Response
+	err = json.Unmarshal([]byte(resultHex), &resultHexResponse)
+	if err != nil {
+		t.Errorf("Failed to parse hex result JSON response: %v", err)
+	} else if resultHexResponse.Error != nil {
+		t.Errorf("Hex reconstruction failed: %s", *resultHexResponse.Error)
+	} else {
+		resultHexStr, ok := resultHexResponse.Data.(string)
+		if !ok {
+			t.Errorf("Hex result data field is not a string: %T", resultHexResponse.Data)
+		} else if resultHexStr != secretHex {
+			t.Errorf("Hex reconstruction failed: got %q, want %q", resultHexStr, secretHex)
+		}
 	}
 
 	// Test base64 reconstruction
-	shareLinesBase64 := strings.Split(strings.TrimSpace(sharesBase64), "\n")
+	sharesBase64Str, ok := sharesBase64Response.Data.(string)
+	if !ok {
+		t.Fatalf("Base64 shares data is not a string: %T", sharesBase64Response.Data)
+	}
+	shareLinesBase64 := strings.Split(strings.TrimSpace(sharesBase64Str), "\n")
 	resultBase64 := app.Recompose(shareLinesBase64[:2])
-	if strings.HasPrefix(resultBase64, "error: ") {
-		t.Errorf("Base64 reconstruction failed: %s", resultBase64)
-	} else if resultBase64 != secretBase64 {
-		t.Errorf("Base64 reconstruction failed: got %q, want %q", resultBase64, secretBase64)
+
+	var resultBase64Response Response
+	err = json.Unmarshal([]byte(resultBase64), &resultBase64Response)
+	if err != nil {
+		t.Errorf("Failed to parse base64 result JSON response: %v", err)
+	} else if resultBase64Response.Error != nil {
+		t.Errorf("Base64 reconstruction failed: %s", *resultBase64Response.Error)
+	} else {
+		resultBase64Str, ok := resultBase64Response.Data.(string)
+		if !ok {
+			t.Errorf("Base64 result data field is not a string: %T", resultBase64Response.Data)
+		} else if resultBase64Str != secretBase64 {
+			t.Errorf("Base64 reconstruction failed: got %q, want %q", resultBase64Str, secretBase64)
+		}
 	}
 }
 
@@ -410,12 +515,19 @@ func TestAppErrorHandling(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := app.Split(tt.secret, tt.shards, tt.shardsNeeded, tt.output)
 
-			if !strings.HasPrefix(result, "error: ") {
-				t.Errorf("Split() should have returned error, got: %s", result)
+			// Parse JSON response
+			var response Response
+			err := json.Unmarshal([]byte(result), &response)
+			if err != nil {
+				t.Fatalf("Failed to parse JSON response: %v, response: %s", err, result)
+			}
+
+			if response.Error == nil {
+				t.Errorf("Split() should have returned error, got: %+v", response)
 				return
 			}
 
-			errorMsg := strings.TrimPrefix(result, "error: ")
+			errorMsg := *response.Error
 			if !strings.Contains(errorMsg, tt.expectedError) {
 				t.Errorf("Split() error message '%s' should contain '%s'", errorMsg, tt.expectedError)
 			}
