@@ -26,7 +26,7 @@ export default function TabsSharp({ tabs, initialTab }: TabSharpProps) {
   }, [activeTab]);
 
   return (
-    <Tabs defaultValue={initialTab} onValueChange={setActiveTab} className="max-w-xs w-full">
+    <Tabs defaultValue={initialTab} onValueChange={setActiveTab} className="max-w-xl w-full">
       <TabsList className="w-full p-0 justify-start border-b border-crystal-500/50 rounded-none bg-crystal-700/70 backdrop-blur-xl relative">
         {tabs.map((tab) => (
           <TabsTrigger
@@ -39,8 +39,6 @@ export default function TabsSharp({ tabs, initialTab }: TabSharpProps) {
             <code className="text-[13px]">{tab.name}</code>
           </TabsTrigger>
         ))}
-
-        {/* Sliding indicator */}
         <motion.div
           className="absolute bottom-0 h-0.5 bg-crystal-300"
           initial={false}
@@ -54,7 +52,7 @@ export default function TabsSharp({ tabs, initialTab }: TabSharpProps) {
 
       <AnimatePresence mode="wait">
         {tabs.find(tab => tab.value === activeTab) && (
-          <TabsContent key={activeTab} value={activeTab} className="mt-4">
+          <TabsContent key={activeTab} value={activeTab}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

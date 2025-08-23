@@ -1,10 +1,7 @@
 import { motion } from "framer-motion";
 
 import { Button } from "./ui/button";
-
-type SplitResultsProps = {
-  results: string;
-}
+import { SplitResultsProps } from "../types/core";
 
 const resultVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
@@ -26,23 +23,23 @@ const cardVariants = {
 };
 
 export default function SplitResults({ results }: SplitResultsProps) {
-  if (!results) return null;
+  if (!results.data || results.error) return null;
 
   return (
     <motion.div
       variants={resultVariants}
       initial="hidden"
       animate="visible"
-      className="w-full max-w-2xl mx-auto"
+      className="w-full max-w-4xl mx-auto"
     >
-      <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/60 backdrop-blur-sm rounded-lg border border-slate-600/50 shadow-xl p-6">
+      <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/60 backdrop-blur-sm rounded-md border border-slate-600/50 shadow-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-slate-100 mb-1">Split Results</h3>
+            <h3 className="font-semibold text-slate-100 mb-1">Shards</h3>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-3">
-          {results.split('\n')
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 max-h-[200px] overflow-y-auto">
+          {results.data?.split('\n')
             .filter(line => line.trim() !== '')
             .map((line, index) => (
               <motion.div
@@ -51,7 +48,7 @@ export default function SplitResults({ results }: SplitResultsProps) {
                 initial="hidden"
                 animate="visible"
                 transition={{ delay: index * 0.1 }}
-                className="relative bg-crystal-700/50 rounded-md border border-crystal-600/50 p-4 hover:bg-crystal-700/70 hover:border-crystal-500/50 transition-all duration-200"
+                className="relative bg-crystal-700/50 rounded-md border border-crystal-600/50 p-2 hover:bg-crystal-700/70 hover:border-crystal-500/50 transition-all duration-200"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">

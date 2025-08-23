@@ -1,14 +1,12 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
+
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Button } from "./ui/button";
-import { useState } from "react";
-
-type SplitFormProps = {
-  onSplit: (secret: string, shards: number, shardsNeeded: number, output: string) => void;
-}
+import { SplitFormProps } from "../types/core";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -56,16 +54,20 @@ export default function SplitForm({ onSplit }: SplitFormProps) {
       animate="visible"
       className="w-full"
     >
-      <motion.div variants={itemVariants} className="grid w-full max-w-sm items-center gap-3">
+      <motion.div variants={itemVariants} className="grid w-full items-center gap-3">
         <Label htmlFor="secret">Secret</Label>
-        <Textarea id="secret" value={secret} onChange={(e) => setSecret(e.target.value)} placeholder="Enter your secret here..." />
+        <Textarea id="secret" value={secret} onChange={(e) => setSecret(e.target.value)} placeholder="Enter your secret here..." className="max-h-[120px] w-full" />
       </motion.div>
 
-      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 mt-8">
-        <Label htmlFor="shards">Shards</Label>
-        <Input type="number" min={2} max={MAX_SHARDS} value={shards} onChange={(e) => setShards(Number(e.target.value))} />
-        <Label htmlFor="shardsNeeded">Shards Needed</Label>
-        <Input type="number" min={2} max={shards} value={shardsNeeded} onChange={(e) => setShardsNeeded(Number(e.target.value))} />
+      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 mt-4">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="shards">Shards</Label>
+          <Input type="number" min={2} max={MAX_SHARDS} value={shards} onChange={(e) => setShards(Number(e.target.value))} />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="shardsNeeded">Shards Needed</Label>
+          <Input type="number" min={2} max={shards} value={shardsNeeded} onChange={(e) => setShardsNeeded(Number(e.target.value))} />
+        </div>
       </motion.div>
 
       <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 mt-3">
