@@ -7,46 +7,7 @@ import { Textarea } from "./ui/textarea";
 import { Icon } from "./Icon";
 import { Label } from "./ui/label";
 import { RecomposeResult } from "../types/core";
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: "easeOut" as const }
-  }
-};
-
-const buttonVariants = {
-  hover: {
-    scale: 1.02,
-    transition: { duration: 0.2, ease: "easeInOut" as const }
-  },
-  tap: {
-    scale: 0.98,
-    transition: { duration: 0.1 }
-  }
-};
-
-const resultVariants = {
-  hidden: { opacity: 0, height: 0 },
-  visible: {
-    opacity: 1,
-    height: "auto",
-    transition: { duration: 0.5, ease: "easeOut" as const }
-  }
-};
+import { bindVariants } from "../lib/motions";
 
 export default function Bind() {
   const [shards, setShards] = useState(["", ""])
@@ -68,14 +29,14 @@ export default function Bind() {
 
   return (
     <motion.div
-      variants={containerVariants}
+      variants={bindVariants.container}
       initial="hidden"
       animate="visible"
       className="flex flex-col items-center justify-between gap-3 p-4"
     >
-      <motion.div variants={itemVariants} className="flex items-center justify-between gap-4 p-4 bg-crystal-700/20 rounded-sm border border-crystal-500/20">
+      <motion.div variants={bindVariants.item} className="flex items-center justify-between gap-4 p-4 bg-crystal-700/20 rounded-sm border border-crystal-500/20">
         <div className="flex items-center gap-2">
-          <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+          <motion.div variants={bindVariants.button} whileHover="hover" whileTap="tap">
             <Button
               variant="outline"
               size="sm"
@@ -86,7 +47,7 @@ export default function Bind() {
               <Icon icon="Remove" />
             </Button>
           </motion.div>
-          <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+          <motion.div variants={bindVariants.button} whileHover="hover" whileTap="tap">
             <Button
               variant="outline"
               size="sm"
@@ -102,7 +63,7 @@ export default function Bind() {
           </span>
         </div>
 
-        <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+        <motion.div variants={bindVariants.button} whileHover="hover" whileTap="tap">
           <Button
             variant="default"
             size="sm"
@@ -114,7 +75,7 @@ export default function Bind() {
         </motion.div>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="grid grid-cols-1 gap-3 mt-4 overflow-y-scroll max-h-[200px] w-full">
+      <motion.div variants={bindVariants.item} className="grid grid-cols-1 gap-3 mt-4 overflow-y-scroll max-h-[200px] w-full">
         {shards.map((shard, i) => (
           <motion.div
             key={i}
@@ -123,26 +84,24 @@ export default function Bind() {
             transition={{ duration: 0.3, delay: i * 0.1 }}
             className="relative w-1/2 mx-auto"
           >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <Label className="text-sm font-medium">
+            <div className="flex items-start gap-3">
+              <Label className="text-sm font-medium mt-2 flex-shrink-0" htmlFor={`shard-${i}`}>
                 Shard {i + 1}
               </Label>
-              <span className="text-xs text-muted-foreground">
-                {shard.length} chars
-              </span>
+              <Textarea
+                id={`shard-${i}`}
+                placeholder={`Paste shard ${i + 1} here...`}
+                value={shard}
+                onChange={(e) => setShards(shards.map((s, j) => j === i ? e.target.value : s))}
+                className="min-h-[80px] max-h-[120px] resize-none flex-1"
+              />
             </div>
-            <Textarea
-              placeholder={`Paste shard ${i + 1} here...`}
-              value={shard}
-              onChange={(e) => setShards(shards.map((s, j) => j === i ? e.target.value : s))}
-              className="min-h-[80px] max-h-[120px] resize-none"
-            />
           </motion.div>
         ))}
       </motion.div>
 
-      <motion.div variants={itemVariants} className="mt-4">
-        <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+      <motion.div variants={bindVariants.item} className="mt-4">
+        <motion.div variants={bindVariants.button} whileHover="hover" whileTap="tap">
           <Button onClick={onRecompose} disabled={shards.length < 2}>
             Recompose
           </Button>
@@ -151,7 +110,7 @@ export default function Bind() {
 
       {result.data || result.error && (
         <motion.div
-          variants={resultVariants}
+          variants={bindVariants.result}
           initial="hidden"
           animate="visible"
           className="mt-4"

@@ -14,14 +14,15 @@ function App() {
           color1="#0891B2"
           color2="#7C3AED"
         />
-        <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
-          <div className='bg-gradient-to-br from-crystal-700/40 to-crystal-600/30 rounded-sm border border-crystal-500/20 shadow-lg backdrop-blur-sm'>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[620px] h-[620px] flex flex-col items-center justify-center">
+          <div className='bg-gradient-to-br from-crystal-700/40 to-crystal-600/30 rounded-sm border border-crystal-500/20 shadow-lg backdrop-blur-sm w-full h-full'>
             <img src={logo} id="logo" alt="logo" className='w-[200px] mb-4 mx-auto mt-4' />
             <p className="text-crystal-100 text-sm leading-relaxed text-center mb-2 px-4">
               Secure secret sharing using Shamir's Secret Sharing algorithm.
               <br />
               Split your secrets into multiple shards or recompose them back together.
             </p>
+            <hr className="mt-4 border-crystal-500/20" />
             <div className="flex flex-col gap-4 items-center justify-center p-4 overflow-hidden">
               <Wizard />
             </div>

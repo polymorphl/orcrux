@@ -9,4 +9,6 @@ export type SplitResultsProps = {
     error: string | null;
     data: string | null;
   };
+  onBack: () => void;
+  onDownload: (data: string) => void;
 }

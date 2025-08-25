@@ -14,3 +14,60 @@
 .custom-icon rect {
     stroke: currentColor;
 }
+
+/* Custom slider styles */
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.slider::-webkit-slider-track {
+    background: #12CBB7;
+    height: 2px;
+    border-radius: 1px;
+    border: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #12CBB7;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background: #12CBB7;
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(18, 203, 183, 0.4);
+}
+
+.slider::-moz-range-track {
+    background: #12CBB7;
+    height: 2px;
+    border-radius: 1px;
+    border: none;
+}
+
+.slider::-moz-range-thumb {
+    background: #12CBB7;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+    background: #12CBB7;
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(18, 203, 183, 0.4);
+}
