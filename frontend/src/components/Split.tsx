@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Split as SplitFn } from "../../wailsjs/go/main/App";
+import { Split as SplitFn, SaveFile as SaveFileFn } from "../../wailsjs/go/main/App";
 
 import SplitResults from "./SplitResults";
 import SplitForm from "./SplitForm";
@@ -17,13 +17,9 @@ export default function Split() {
     setStep(1)
   }
 
-  const handleDownload = (data: string) => {
+  const handleDownload = async (data: string) => {
     const blob = new Blob([data], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'shards.txt'
-    a.click()
+    await SaveFileFn("shards.txt", Array.from(new Uint8Array(await blob.arrayBuffer())))
   }
 
   return (
