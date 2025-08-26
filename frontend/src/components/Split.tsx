@@ -4,6 +4,7 @@ import { Split as SplitFn, SaveFile as SaveFileFn } from "../../wailsjs/go/main/
 import SplitResults from "./SplitResults";
 import SplitForm from "./SplitForm";
 import { SplitResult } from "../types/core";
+import { splitActiveColors, splitIdleColors } from "@/lib/colors";
 
 export default function Split() {
   const [step, setStep] = useState<number>(0)
@@ -15,6 +16,7 @@ export default function Split() {
     const parsedResult = JSON.parse(result) as SplitResult
     setResult(parsedResult)
     setStep(1)
+    window.parent.postMessage({ type: 'color-change', color1: splitActiveColors[0], color2: splitActiveColors[1] }, '*')
   }
 
   const handleDownload = async (data: string) => {
@@ -22,10 +24,15 @@ export default function Split() {
     await SaveFileFn("shards.txt", Array.from(new Uint8Array(await blob.arrayBuffer())))
   }
 
+  const handleBack = () => {
+    setStep(0)
+    window.parent.postMessage({ type: 'color-change', color1: splitIdleColors[0], color2: splitIdleColors[1] }, '*')
+  }
+
   return (
     <div className="flex flex-col flex items-center justify-between gap-3 p-4">
       {step === 0 && <SplitForm onSplit={handleSplit} />}
-      {step === 1 && <SplitResults results={result} onBack={() => setStep(0)} onDownload={handleDownload} />}
+      {step === 1 && <SplitResults results={result} onBack={handleBack} onDownload={handleDownload} />}
     </div>
   )
 }

@@ -13,7 +13,7 @@ const MIN_SHARDS = 2
 const MAX_SHARDS = 255
 
 export default function SplitForm({ onSplit }: SplitFormProps) {
-  const [secret, setSecret] = useState<string>('test')
+  const [secret, setSecret] = useState<string>('')
   const [shards, setShards] = useState<number>(MIN_SHARDS)
   const [shardsNeeded, setShardsNeeded] = useState<number>(MIN_SHARDS)
   const [output, setOutput] = useState<'base64' | 'hex'>('base64')

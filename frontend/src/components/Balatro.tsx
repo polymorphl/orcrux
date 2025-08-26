@@ -15,6 +15,7 @@ interface BalatroProps {
   spinEase?: number;
   isRotate?: boolean;
   mouseInteraction?: boolean;
+  transitionDuration?: number; // Duration in seconds for color transitions
 }
 
 function hexToVec4(hex: string): [number, number, number, number] {
@@ -132,8 +133,30 @@ export default function Balatro({
   spinEase = 1.0,
   isRotate = false,
   mouseInteraction = true,
+  transitionDuration = 0.8,
 }: BalatroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Color transition state
+  const prevColorsRef = useRef({ color1, color2, color3 });
+  const currentColorsRef = useRef({ color1, color2, color3 });
+  const transitionStartTimeRef = useRef(0);
+  const isTransitioningRef = useRef(false);
+
+  // Effect to handle color changes and trigger transitions
+  useEffect(() => {
+    const currentColors = { color1, color2, color3 };
+    const prevColors = prevColorsRef.current;
+
+    // Check if any colors have changed
+    if (prevColors.color1 !== color1 || prevColors.color2 !== color2 || prevColors.color3 !== color3) {
+      // Start transition
+      prevColorsRef.current = { ...prevColors };
+      currentColorsRef.current = { ...currentColors };
+      transitionStartTimeRef.current = performance.now();
+      isTransitioningRef.current = true;
+    }
+  }, [color1, color2, color3]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -189,8 +212,52 @@ export default function Balatro({
     const mesh = new Mesh(gl, { geometry, program });
     let animationFrameId: number;
 
+    // Color interpolation function
+    function interpolateColors(prev: string, current: string, progress: number): [number, number, number, number] {
+      const prevVec = hexToVec4(prev);
+      const currentVec = hexToVec4(current);
+
+      return [
+        prevVec[0] + (currentVec[0] - prevVec[0]) * progress,
+        prevVec[1] + (currentVec[1] - prevVec[1]) * progress,
+        prevVec[2] + (currentVec[2] - prevVec[2]) * progress,
+        prevVec[3] + (currentVec[3] - prevVec[3]) * progress,
+      ];
+    }
+
     function update(time: number) {
       animationFrameId = requestAnimationFrame(update);
+
+      // Handle color transitions
+      if (isTransitioningRef.current) {
+        const elapsed = (time - transitionStartTimeRef.current) * 0.001;
+        const progress = Math.min(elapsed / transitionDuration, 1.0);
+
+        if (progress >= 1.0) {
+          // Transition complete
+          isTransitioningRef.current = false;
+          prevColorsRef.current = { ...currentColorsRef.current };
+        } else {
+          // Interpolate colors
+          const easedProgress = 1 - Math.pow(1 - progress, 3); // Ease-out cubic
+          program.uniforms.uColor1.value = interpolateColors(
+            prevColorsRef.current.color1,
+            currentColorsRef.current.color1,
+            easedProgress
+          );
+          program.uniforms.uColor2.value = interpolateColors(
+            prevColorsRef.current.color2,
+            currentColorsRef.current.color2,
+            easedProgress
+          );
+          program.uniforms.uColor3.value = interpolateColors(
+            prevColorsRef.current.color3,
+            currentColorsRef.current.color3,
+            easedProgress
+          );
+        }
+      }
+
       program.uniforms.iTime.value = time * 0.001;
       renderer.render({ scene: mesh });
     }
@@ -226,7 +293,8 @@ export default function Balatro({
     pixelFilter,
     spinEase,
     isRotate,
-    mouseInteraction
+    mouseInteraction,
+    transitionDuration
   ]);
 
   return <div ref={containerRef} className="w-full h-full" />;

@@ -9,6 +9,7 @@ import { RecomposeResult } from "../types/core";
 import { bindVariants } from "../lib/motions";
 import { Input } from "./ui/input";
 import BindManualController from "./BindManualController";
+import { bindActiveColors, bindIdleColors } from "@/lib/colors";
 
 export default function Bind() {
   const [shards, setShards] = useState(["", ""])
@@ -17,6 +18,7 @@ export default function Bind() {
   const onReset = () => {
     setResult({ error: null, data: null })
     setShards(["", ""])
+    window.parent.postMessage({ type: 'color-change', color1: bindIdleColors[0], color2: bindIdleColors[1] }, '*')
   }
 
   const onRecompose = async () => {
@@ -27,6 +29,7 @@ export default function Bind() {
     const result = await RecomposeFn(shards)
     const parsedResult = JSON.parse(result) as RecomposeResult
     setResult(parsedResult)
+    window.parent.postMessage({ type: 'color-change', color1: bindActiveColors[0], color2: bindActiveColors[1] }, '*')
   }
 
   const onUpload = async () => {

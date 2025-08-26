@@ -1,5 +1,6 @@
 import { Icon } from "@/components/Icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { bindIdleColors, splitIdleColors } from "@/lib/colors";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
@@ -22,6 +23,11 @@ export default function TabsSharp({ tabs, initialTab }: TabSharpProps) {
         setIndicatorPosition(rect.left - parentRect.left);
         setIndicatorWidth(rect.width);
       }
+    }
+    if (activeTab === 'split') {
+      window.parent.postMessage({ type: 'color-change', color1: splitIdleColors[0], color2: splitIdleColors[1] }, '*')
+    } else if (activeTab === 'bind') {
+      window.parent.postMessage({ type: 'color-change', color1: bindIdleColors[0], color2: bindIdleColors[1] }, '*')
     }
   }, [activeTab]);
 

@@ -44,7 +44,7 @@ export default function SplitResults({ results, onBack, onDownload }: SplitResul
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <pre className="text-sm text-crystal-200 font-mono break-all leading-relaxed">
+                  <pre className="text-sm text-crystal-200 font-mono leading-relaxed select-none truncate" title={line}>
                     {line}
                   </pre>
                 </div>
