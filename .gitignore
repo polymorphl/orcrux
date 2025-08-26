@@ -4,3 +4,6 @@ frontend/dist
 
 # Files
 .DS_Store
+
+# Orcrux
+shards.txt

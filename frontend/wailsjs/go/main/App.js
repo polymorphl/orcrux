@@ -6,6 +6,14 @@ export function Recompose(arg1) {
   return window['go']['main']['App']['Recompose'](arg1);
 }
 
+export function SaveFile(arg1, arg2) {
+  return window['go']['main']['App']['SaveFile'](arg1, arg2);
+}
+
 export function Split(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['Split'](arg1, arg2, arg3, arg4);
+}
+
+export function UploadFile() {
+  return window['go']['main']['App']['UploadFile']();
 }

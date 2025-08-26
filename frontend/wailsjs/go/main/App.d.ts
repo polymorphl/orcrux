@@ -3,4 +3,8 @@
 
 export function Recompose(arg1:Array<string>):Promise<string>;
 
+export function SaveFile(arg1:string,arg2:Array<number>):Promise<void>;
+
 export function Split(arg1:string,arg2:number,arg3:number,arg4:string):Promise<string>;
+
+export function UploadFile():Promise<string>;

@@ -74,41 +74,34 @@ func encodeShare(data []byte, format string) string {
 	return base64.StdEncoding.EncodeToString(data)
 }
 
-// shamirSplit implements Shamir's Secret Sharing algorithm to split a secret into n shares,
-// where any t shares can reconstruct the original secret. This provides a threshold-based
-// secret sharing scheme with information-theoretic security.
+// Split implements Shamir's Secret Sharing algorithm to split a secret into n shards,
+// where t shards are required to reconstruct the original secret.
 //
-// The algorithm works by:
-//  1. For each byte of the secret, generate a random polynomial of degree t-1
-//     where the constant term is the secret byte value
-//  2. Evaluate each polynomial at n distinct points (x = 1, 2, ..., n)
-//  3. Each share contains the x-coordinate and the corresponding y-values
-//  4. Any t shares can be used to reconstruct the original secret using Lagrange interpolation
+// The function takes a secret byte array and generates n polynomial shares, each
+// containing an x-coordinate and the corresponding y-value. The polynomial is
+// evaluated for each byte of the secret independently, ensuring that any t shares
+// can be used to reconstruct the original secret through polynomial interpolation.
 //
 // Parameters:
-//   - secret: The secret data to be split (must not be empty)
-//   - n: Total number of shares to generate (must be in [2, 255])
-//   - t: Threshold - minimum number of shares needed to reconstruct (must be in [2, n])
-//   - output: Output encoding format, either "hex" or "base64"
+//   - secret: The secret data to be split (cannot be empty)
+//   - n: Total number of shards to generate (must be between 2 and 255)
+//   - t: Minimum number of shards required for reconstruction (must be between 2 and n)
+//   - output: Output encoding format ("base64" or "hex")
 //
 // Returns:
-//   - A string containing n shares, one per line, in format "xx:<encoded_data>"
-//     where xx is the hex representation of the x-coordinate (1 to n)
-//   - An error if any validation fails or crypto operations error
-//
-// Security properties:
-//   - Any subset of shares less than t reveals no information about the secret
-//   - The scheme is information-theoretically secure (unconditionally secure)
-//   - Random coefficients ensure each share appears independent of the secret
+//   - A string containing n lines, each formatted as "xx:encoded_data" where:
+//   - xx is the hexadecimal x-coordinate (2 hex digits)
+//   - encoded_data is the y-coordinates encoded in the specified format
+//   - An error if validation fails or polynomial evaluation encounters issues
 //
 // Example output format:
 //
-//	01:a1b2c3d4...
-//	02:e5f6g7h8...
-//	03:i9j0k1l2...
+//	"01:base64_encoded_y_values"
+//	"02:base64_encoded_y_values"
+//	"03:base64_encoded_y_values"
 //
-// Note: This implementation uses GF(2^8) arithmetic with irreducible polynomial 0x11b
-// for polynomial evaluation, which is standard in cryptographic applications.
+// Security: This implementation uses finite field arithmetic over GF(256) to ensure
+// that no information about the secret is leaked from individual shares.
 func Split(secret []byte, n, t int, output string) (string, error) {
 	if err := validateShamirParams(secret, n, t, output); err != nil {
 		return "", err
