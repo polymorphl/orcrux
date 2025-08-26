@@ -150,6 +150,8 @@ go test -cover
 ```
 
 ### Building for Distribution
+
+#### Quick Build Commands
 ```bash
 # Build for current platform
 wails build
@@ -159,6 +161,50 @@ wails build -platform windows/amd64
 wails build -platform darwin/universal
 wails build -platform linux/amd64
 ```
+
+#### Using the Build System
+```bash
+# Show available build commands
+make help
+
+# Build for all platforms
+make build-all
+
+# Build for specific platform
+make build-linux
+make build-windows
+make build-darwin
+
+# Clean build artifacts
+make clean
+```
+
+#### Using Build Scripts
+```bash
+# On macOS/Linux
+./scripts/build.sh
+
+# On Windows
+scripts/build.bat
+```
+
+### Creating Releases
+
+#### Automated Release (Recommended)
+1. **Bump version**: `./scripts/version.sh bump patch`
+2. **Create release**: `./scripts/version.sh release`
+3. **GitHub Actions** will automatically build and publish
+
+#### Manual Release
+```bash
+# Build all platforms
+make build-all
+
+# Create release package
+make release
+```
+
+For detailed release instructions, see [RELEASE.md](RELEASE.md).
 
 ## 🎯 Use Cases
 
