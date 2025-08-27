@@ -86,27 +86,100 @@ jobs:
             echo "✅ Private key imported successfully"
             security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
             
-            # Find the imported identity
+            # Find the imported identity with better debugging
+            echo "🔍 Searching for Apple Development certificate in keychain..."
+            security find-identity -v -p codesigning build.keychain
+            
             IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Development" | head -1 | awk -F'"' '{print $2}')
+            
+            echo "🔍 Extracted identity: '$IDENTITY'"
             
             if [ -n "$IDENTITY" ]; then
               echo "✅ Found Apple Development certificate: $IDENTITY"
-              echo "🔏 Code signing macOS app..."
-              codesign --force --deep --sign "$IDENTITY" build/bin/orcrux.app
+              echo "🔍 Certificate details:"
+              echo "   Length: ${#IDENTITY}"
+              echo "   Contains spaces: $([ "$IDENTITY" != "${IDENTITY// /}" ] && echo "YES" || echo "NO")"
+              echo "   Contains quotes: $([ "$IDENTITY" != "${IDENTITY//\"/}" ] && echo "YES" || echo "NO")"
               
-              # Verify the signature
-              if codesign --verify --verbose build/bin/orcrux.app; then
-                echo "✅ Code signing successful!"
+              echo "🔏 Code signing macOS app..."
+              
+              # Try code signing with timeout protection
+              echo "🔍 Attempting code signing with identity: '$IDENTITY'"
+              
+              # Check if timeout command is available
+              if command -v gtimeout >/dev/null 2>&1; then
+                TIMEOUT_CMD="gtimeout 60s"
+              elif command -v timeout >/dev/null 2>&1; then
+                TIMEOUT_CMD="timeout 60s"
               else
-                echo "⚠️ Code signing verification failed, but continuing with build"
+                TIMEOUT_CMD=""
+                echo "⚠️ No timeout command available, codesign might hang"
               fi
               
-              # Show code signing info
-              echo "🔍 Code signing details:"
-              codesign -dv build/bin/orcrux.app || echo "Could not display code signing info"
+              # Try code signing with timeout if available
+              if [ -n "$TIMEOUT_CMD" ]; then
+                echo "⏱️ Using timeout protection: $TIMEOUT_CMD"
+                if $TIMEOUT_CMD codesign --force --deep --sign "$IDENTITY" build/bin/orcrux.app; then
+                  echo "✅ Code signing completed successfully!"
+                  goto_verification=true
+                else
+                  echo "⚠️ Code signing with timeout failed, trying without timeout..."
+                  goto_no_timeout=true
+                fi
+              else
+                echo "⏱️ No timeout available, attempting code signing..."
+                goto_no_timeout=true
+              fi
+              
+              # Try without timeout if timeout failed or wasn't available
+              if [ "$goto_no_timeout" = "true" ]; then
+                echo "🔍 Attempting code signing without timeout..."
+                if codesign --force --deep --sign "$IDENTITY" build/bin/orcrux.app; then
+                  echo "✅ Code signing completed successfully!"
+                  goto_verification=true
+                else
+                  echo "⚠️ Code signing failed, trying alternative approach..."
+                  goto_alternative=true
+                fi
+              fi
+              
+              # Try alternative approach with certificate hash
+              if [ "$goto_alternative" = "true" ]; then
+                echo "🔍 Trying alternative approach with certificate hash..."
+                CERT_HASH=$(echo "$IDENTITY" | grep -o '[A-F0-9]\{40\}' | head -1)
+                if [ -n "$CERT_HASH" ]; then
+                  echo "🔍 Using certificate hash: $CERT_HASH"
+                  if codesign --force --deep --sign "$CERT_HASH" build/bin/orcrux.app; then
+                    echo "✅ Code signing with hash successful!"
+                    goto_verification=true
+                  else
+                    echo "⚠️ Code signing with hash failed, falling back to unsigned"
+                    goto_self_signed=true
+                  fi
+                else
+                  echo "⚠️ Could not extract certificate hash, falling back to unsigned"
+                  goto_self_signed=true
+                fi
+              fi
+              
+              # Verify signature if code signing succeeded
+              if [ "$goto_verification" = "true" ]; then
+                echo "🔍 Verifying code signature..."
+                if codesign --verify --verbose build/bin/orcrux.app; then
+                  echo "✅ Code signing verification successful!"
+                else
+                  echo "⚠️ Code signing verification failed, but continuing with build"
+                fi
+                
+                # Show code signing info
+                echo "🔍 Code signing details:"
+                codesign -dv build/bin/orcrux.app || echo "Could not display code signing info"
+              fi
+                fi
+              fi
               
             else
-              echo "⚠️ Could not find Apple Development certificate, falling back to self-signed"
+              echo "⚠️ Could not find Apple Development certificate, falling back to unsigned"
               goto_self_signed=true
             fi
           else
