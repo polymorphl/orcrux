@@ -16,6 +16,7 @@ help:
 
 	@echo "  build-windows - Build for Windows (amd64)"
 	@echo "  build-darwin  - Build for macOS (amd64)"
+	@echo "  create-dmg    - Create macOS DMG installer"
 	@echo "  clean         - Clean build artifacts"
 	@echo "  test          - Run tests"
 	@echo "  release       - Create release package"
@@ -59,6 +60,13 @@ build-windows: build-frontend
 build-darwin: build-frontend
 	@echo "Building for macOS..."
 	@wails build -platform darwin/amd64 -clean
+	@echo "Creating DMG for macOS..."
+	@./scripts/create-dmg.sh
+
+# Create DMG from existing app bundle
+create-dmg:
+	@echo "Creating DMG from existing macOS app..."
+	@./scripts/create-dmg.sh
 
 # Clean build artifacts
 clean:

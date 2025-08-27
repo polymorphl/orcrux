@@ -112,7 +112,9 @@ Each release includes:
 ### File Structure
 ```
 orcrux-<platform>-<arch>/
-├── orcrux(.exe)           # Main executable
+├── orcrux(.exe)           # Main executable (Windows)
+├── orcrux.app/            # macOS app bundle
+├── orcrux-macos.dmg       # macOS installer (DMG)
 ├── Info.plist             # macOS metadata
 ├── iconfile.icns          # macOS icon
 ├── icon.ico               # Windows icon

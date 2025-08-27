@@ -194,6 +194,10 @@ scripts/build.bat
 2. **Create release**: `./scripts/version.sh release`
 3. **GitHub Actions** will automatically build and publish
 
+#### Release Artifacts
+- **Windows**: `.exe` executable
+- **macOS**: `.app` bundle + `.dmg` installer
+
 #### Manual Release
 ```bash
 # Build all platforms

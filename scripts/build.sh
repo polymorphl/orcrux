@@ -68,6 +68,16 @@ build_platform() {
     # Copy build artifacts
     if [ "$platform" = "windows" ]; then
         cp -r build/bin/* "dist/orcrux-$platform-$arch/"
+    elif [ "$platform" = "darwin" ]; then
+        # For macOS, copy the app bundle and create DMG
+        cp -r build/bin/* "dist/orcrux-$platform-$arch/"
+        
+        # Create DMG if we're on macOS
+        if [[ "$(uname)" == "Darwin" ]]; then
+            print_status "Creating DMG for macOS..."
+            ./scripts/create-dmg.sh
+            print_success "DMG created and added to artifacts"
+        fi
     else
         cp -r build/bin/* "dist/orcrux-$platform-$arch/"
     fi

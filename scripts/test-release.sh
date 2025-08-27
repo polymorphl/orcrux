@@ -131,6 +131,16 @@ test_wails_build() {
     print_status "Build artifacts for $platform/$arch:"
     ls -la build/bin/
     
+    # Create DMG for macOS builds
+    if [[ "$platform" == "darwin" && "$(uname)" == "Darwin" ]]; then
+        print_status "Creating DMG for macOS..."
+        if ./scripts/create-dmg.sh; then
+            print_success "DMG created successfully"
+        else
+            print_warning "DMG creation failed, but build succeeded"
+        fi
+    fi
+    
     print_success "Wails build for $platform/$arch completed successfully"
     return 0
 }

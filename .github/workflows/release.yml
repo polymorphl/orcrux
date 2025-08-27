@@ -55,6 +55,12 @@ jobs:
       - name: Build application
         run: |
           wails build -platform ${{ matrix.platform }}/${{ matrix.arch }} -clean
+          
+          # Create DMG for macOS builds
+          if [ "${{ matrix.platform }}" = "darwin" ]; then
+            chmod +x scripts/create-dmg.sh
+            ./scripts/create-dmg.sh
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
