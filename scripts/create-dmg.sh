@@ -104,6 +104,12 @@ main() {
         mv "$dmg_name" "dist/orcrux-darwin-amd64/"
         print_status "DMG moved to dist/orcrux-darwin-amd64/"
     fi
+    
+    # Also copy to build/bin for GitHub Actions artifacts
+    if [[ -d "build/bin" ]]; then
+        cp "$dmg_name" "build/bin/"
+        print_status "DMG copied to build/bin for artifacts"
+    fi
 }
 
 # Run main function

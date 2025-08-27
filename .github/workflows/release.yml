@@ -62,6 +62,8 @@ jobs:
         run: |
           chmod +x scripts/create-dmg.sh
           ./scripts/create-dmg.sh
+          # Ensure DMG is in the build directory for artifact upload
+          cp orcrux-macos.dmg build/bin/ || true
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -87,9 +89,7 @@ jobs:
           files: |
             orcrux-windows-amd64/*
             orcrux-darwin-amd64/*
-            orcrux-darwin-amd64/*.dmg
           draft: false
           prerelease: false
-          generate_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
