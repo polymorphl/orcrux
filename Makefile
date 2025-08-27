@@ -17,6 +17,8 @@ help:
 	@echo "  build-windows - Build for Windows (amd64)"
 	@echo "  build-darwin  - Build for macOS (amd64)"
 	@echo "  create-dmg    - Create macOS DMG installer"
+	@echo "  sign-app      - Code sign macOS app"
+	@echo "  notarize      - Submit app for Apple notarization"
 	@echo "  clean         - Clean build artifacts"
 	@echo "  test          - Run tests"
 	@echo "  release       - Create release package"
@@ -67,6 +69,22 @@ build-darwin: build-frontend
 create-dmg:
 	@echo "Creating DMG from existing macOS app..."
 	@./scripts/create-dmg.sh
+
+# Code sign the macOS app
+sign-app:
+	@echo "Code signing macOS app..."
+	@./scripts/code-sign.sh help
+	@echo ""
+	@echo "To sign with your identity, run:"
+	@echo "  ./scripts/code-sign.sh sign 'Developer ID Application: Your Name'"
+
+# Notarize the app with Apple
+notarize:
+	@echo "Submitting app for Apple notarization..."
+	@./scripts/code-sign.sh help
+	@echo ""
+	@echo "To notarize, run:"
+	@echo "  ./scripts/code-sign.sh notarize your@email.com app_password"
 
 # Clean build artifacts
 clean:
