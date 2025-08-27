@@ -65,140 +65,36 @@ jobs:
         if: matrix.platform == 'darwin'
         shell: bash
         run: |
-          echo "🔐 Setting up code signing with Apple Development certificate..."
+          echo "Setting up code signing..."
           
-          # Create a temporary keychain for this build
+          # Create temporary keychain
           security create-keychain -p "" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
           security set-keychain-settings build.keychain
           
-          # Try to import certificate and private key from GitHub secrets
-          echo "📥 Attempting to import certificate from secrets..."
+          # Import certificate and private key
           echo "${{ secrets.MACOS_CERTIFICATE }}" | base64 -d > build.crt
           echo "${{ secrets.MACOS_PRIVATE_KEY }}" | base64 -d > build.key
           
           # Import to keychain
           security import build.crt -k build.keychain
+          security import build.key -k build.keychain
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
           
-          # Try to import private key (might fail if it's not in the right format)
-          if security import build.key -k build.keychain 2>/dev/null; then
-            echo "✅ Private key imported successfully"
-            security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
-            
-            # Find the imported identity with better debugging
-            echo "🔍 Searching for Apple Development certificate in keychain..."
-            security find-identity -v -p codesigning build.keychain
-            
-            IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Development" | head -1 | awk -F'"' '{print $2}')
-            
-            echo "🔍 Extracted identity: '$IDENTITY'"
-            
-            if [ -n "$IDENTITY" ]; then
-              echo "✅ Found Apple Development certificate: $IDENTITY"
-              echo "🔍 Certificate details:"
-              echo "   Length: ${#IDENTITY}"
-              echo "   Contains spaces: $([ "$IDENTITY" != "${IDENTITY// /}" ] && echo "YES" || echo "NO")"
-              echo "   Contains quotes: $([ "$IDENTITY" != "${IDENTITY//\"/}" ] && echo "YES" || echo "NO")"
-              
-              echo "🔏 Code signing macOS app..."
-              
-              # Try code signing with timeout protection
-              echo "🔍 Attempting code signing with identity: '$IDENTITY'"
-              
-              # Check if timeout command is available
-              if command -v gtimeout >/dev/null 2>&1; then
-                TIMEOUT_CMD="gtimeout 60s"
-              elif command -v timeout >/dev/null 2>&1; then
-                TIMEOUT_CMD="timeout 60s"
-              else
-                TIMEOUT_CMD=""
-                echo "⚠️ No timeout command available, codesign might hang"
-              fi
-              
-              # Try code signing with timeout if available
-              if [ -n "$TIMEOUT_CMD" ]; then
-                echo "⏱️ Using timeout protection: $TIMEOUT_CMD"
-                if $TIMEOUT_CMD codesign --force --deep --sign "$IDENTITY" build/bin/orcrux.app; then
-                  echo "✅ Code signing completed successfully!"
-                  goto_verification=true
-                else
-                  echo "⚠️ Code signing with timeout failed, trying without timeout..."
-                  goto_no_timeout=true
-                fi
-              else
-                echo "⏱️ No timeout available, attempting code signing..."
-                goto_no_timeout=true
-              fi
-              
-              # Try without timeout if timeout failed or wasn't available
-              if [ "$goto_no_timeout" = "true" ]; then
-                echo "🔍 Attempting code signing without timeout..."
-                if codesign --force --deep --sign "$IDENTITY" build/bin/orcrux.app; then
-                  echo "✅ Code signing completed successfully!"
-                  goto_verification=true
-                else
-                  echo "⚠️ Code signing failed, trying alternative approach..."
-                  goto_alternative=true
-                fi
-              fi
-              
-              # Try alternative approach with certificate hash
-              if [ "$goto_alternative" = "true" ]; then
-                echo "🔍 Trying alternative approach with certificate hash..."
-                CERT_HASH=$(echo "$IDENTITY" | grep -o '[A-F0-9]\{40\}' | head -1)
-                if [ -n "$CERT_HASH" ]; then
-                  echo "🔍 Using certificate hash: $CERT_HASH"
-                  if codesign --force --deep --sign "$CERT_HASH" build/bin/orcrux.app; then
-                    echo "✅ Code signing with hash successful!"
-                    goto_verification=true
-                  else
-                    echo "⚠️ Code signing with hash failed, falling back to unsigned"
-                    goto_self_signed=true
-                  fi
-                else
-                  echo "⚠️ Could not extract certificate hash, falling back to unsigned"
-                  goto_self_signed=true
-                fi
-              fi
-              
-              # Verify signature if code signing succeeded
-              if [ "$goto_verification" = "true" ]; then
-                echo "🔍 Verifying code signature..."
-                if codesign --verify --verbose build/bin/orcrux.app; then
-                  echo "✅ Code signing verification successful!"
-                else
-                  echo "⚠️ Code signing verification failed, but continuing with build"
-                fi
-                
-                # Show code signing info
-                echo "🔍 Code signing details:"
-                codesign -dv build/bin/orcrux.app || echo "Could not display code signing info"
-              fi
-                fi
-              fi
-              
-            else
-              echo "⚠️ Could not find Apple Development certificate, falling back to unsigned"
-              goto_self_signed=true
-            fi
+          # Find and use the certificate
+          IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Development" | head -1 | awk -F'"' '{print $2}')
+          
+          if [ -n "$IDENTITY" ]; then
+            echo "Code signing with: $IDENTITY"
+            codesign --force --deep --sign "$IDENTITY" build/bin/orcrux.app
+            echo "Code signing completed"
           else
-            echo "⚠️ Private key import failed, falling back to self-signed certificate"
-            goto_self_signed=true
+            echo "No certificate found, app will be unsigned"
           fi
           
-          # Fallback to unsigned app if code signing fails
-          if [ "$goto_self_signed" = "true" ]; then
-            echo "⚠️ Code signing failed - app will be unsigned"
-            echo "ℹ️ Users can right-click the app to open it"
-            echo "💡 To enable code signing, ensure MACOS_PRIVATE_KEY contains a valid private key"
-            echo "💡 You can export the private key manually from Keychain Access"
-          fi
-          
-          # Clean up certificate files
+          # Cleanup
           rm -f build.crt build.key
-          
-          # Clean up the temporary keychain
           security delete-keychain build.keychain
 
       - name: Create DMG for macOS
@@ -210,48 +106,20 @@ jobs:
           # Create DMG from the signed app
           ./scripts/create-dmg.sh
           
-          # Verify the DMG contents and code signing
-          echo "Verifying DMG contents and code signing:"
+          # Verify DMG contents
+          echo "Verifying DMG contents:"
           if hdiutil attach orcrux-macos.dmg -readonly -mountpoint /tmp/dmg; then
-            echo "✅ DMG mounted successfully"
             ls -la /tmp/dmg/
-            
-            # Check if the app inside is code signed
-            if codesign -dv /tmp/dmg/orcrux.app 2>/dev/null; then
-              SIGNATURE_INFO=$(codesign -dv /tmp/dmg/orcrux.app 2>&1 | head -1)
-              if echo "$SIGNATURE_INFO" | grep -q "Apple Development"; then
-                echo "✅ App in DMG is code signed with Apple Development certificate"
-              else
-                echo "✅ App in DMG is code signed with alternative certificate"
-              fi
-            else
-              echo "ℹ️ App in DMG is not code signed (users can right-click to open)"
-            fi
-            
             hdiutil detach /tmp/dmg
-          else
-            echo "⚠️ Could not mount DMG for verification, but continuing with build"
           fi
           
           # Ensure DMG is in the build directory for artifact upload
           cp orcrux-macos.dmg build/bin/ || true
           
           # Build summary
-          echo "🎉 macOS build completed successfully!"
-          echo "📱 App bundle: $(ls -la build/bin/orcrux.app)"
-          echo "💾 DMG file: $(ls -la build/bin/orcrux-macos.dmg)"
-          
-          # Check code signing status
-          if codesign -dv build/bin/orcrux.app 2>/dev/null; then
-            SIGNATURE_INFO=$(codesign -dv build/bin/orcrux.app 2>&1 | head -1)
-            if echo "$SIGNATURE_INFO" | grep -q "Apple Development"; then
-              echo "✅ App is code signed with Apple Development certificate"
-            else
-              echo "✅ App is code signed with alternative certificate"
-            fi
-          else
-            echo "ℹ️ App is not code signed (users can right-click to open)"
-          fi
+          echo "macOS build completed"
+          echo "App bundle: $(ls -la build/bin/orcrux.app)"
+          echo "DMG file: $(ls -la build/bin/orcrux-macos.dmg)"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
