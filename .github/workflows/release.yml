@@ -55,12 +55,13 @@ jobs:
       - name: Build application
         run: |
           wails build -platform ${{ matrix.platform }}/${{ matrix.arch }} -clean
-          
-          # Create DMG for macOS builds
-          if [ "${{ matrix.platform }}" = "darwin" ]; then
-            chmod +x scripts/create-dmg.sh
-            ./scripts/create-dmg.sh
-          fi
+
+      - name: Create DMG for macOS
+        if: matrix.platform == 'darwin'
+        shell: bash
+        run: |
+          chmod +x scripts/create-dmg.sh
+          ./scripts/create-dmg.sh
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -86,6 +87,7 @@ jobs:
           files: |
             orcrux-windows-amd64/*
             orcrux-darwin-amd64/*
+            orcrux-darwin-amd64/*.dmg
           draft: false
           prerelease: false
           generate_notes: true
