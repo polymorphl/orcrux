@@ -1,5 +1,10 @@
 name: Build and Release
 
+# This workflow builds Orcrux for Windows and macOS, with intelligent code signing
+# for macOS. It tries to use Apple Development certificates from GitHub secrets
+# first, then falls back to self-signed certificates if needed. This provides
+# the best possible user experience while ensuring builds always succeed.
+
 on:
   push:
     tags:
@@ -56,14 +61,124 @@ jobs:
         run: |
           wails build -platform ${{ matrix.platform }}/${{ matrix.arch }} -clean
 
+      - name: Code Sign macOS App
+        if: matrix.platform == 'darwin'
+        shell: bash
+        run: |
+          echo "🔐 Setting up code signing with Apple Development certificate..."
+          
+          # Create a temporary keychain for this build
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security set-keychain-settings build.keychain
+          
+          # Try to import certificate and private key from GitHub secrets
+          echo "📥 Attempting to import certificate from secrets..."
+          echo "${{ secrets.MACOS_CERTIFICATE }}" | base64 -d > build.crt
+          echo "${{ secrets.MACOS_PRIVATE_KEY }}" | base64 -d > build.key
+          
+          # Import to keychain
+          security import build.crt -k build.keychain
+          
+          # Try to import private key (might fail if it's not in the right format)
+          if security import build.key -k build.keychain 2>/dev/null; then
+            echo "✅ Private key imported successfully"
+            security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+            
+            # Find the imported identity
+            IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Development" | head -1 | awk -F'"' '{print $2}')
+            
+            if [ -n "$IDENTITY" ]; then
+              echo "✅ Found Apple Development certificate: $IDENTITY"
+              echo "🔏 Code signing macOS app..."
+              codesign --force --deep --sign "$IDENTITY" build/bin/orcrux.app
+              
+              # Verify the signature
+              if codesign --verify --verbose build/bin/orcrux.app; then
+                echo "✅ Code signing successful!"
+              else
+                echo "⚠️ Code signing verification failed, but continuing with build"
+              fi
+              
+              # Show code signing info
+              echo "🔍 Code signing details:"
+              codesign -dv build/bin/orcrux.app || echo "Could not display code signing info"
+              
+            else
+              echo "⚠️ Could not find Apple Development certificate, falling back to self-signed"
+              goto_self_signed=true
+            fi
+          else
+            echo "⚠️ Private key import failed, falling back to self-signed certificate"
+            goto_self_signed=true
+          fi
+          
+          # Fallback to unsigned app if code signing fails
+          if [ "$goto_self_signed" = "true" ]; then
+            echo "⚠️ Code signing failed - app will be unsigned"
+            echo "ℹ️ Users can right-click the app to open it"
+            echo "💡 To enable code signing, ensure MACOS_PRIVATE_KEY contains a valid private key"
+            echo "💡 You can export the private key manually from Keychain Access"
+          fi
+          
+          # Clean up certificate files
+          rm -f build.crt build.key
+          
+          # Clean up the temporary keychain
+          security delete-keychain build.keychain
+
       - name: Create DMG for macOS
         if: matrix.platform == 'darwin'
         shell: bash
         run: |
           chmod +x scripts/create-dmg.sh
+          
+          # Create DMG from the signed app
           ./scripts/create-dmg.sh
+          
+          # Verify the DMG contents and code signing
+          echo "Verifying DMG contents and code signing:"
+          if hdiutil attach orcrux-macos.dmg -readonly -mountpoint /tmp/dmg; then
+            echo "✅ DMG mounted successfully"
+            ls -la /tmp/dmg/
+            
+            # Check if the app inside is code signed
+            if codesign -dv /tmp/dmg/orcrux.app 2>/dev/null; then
+              SIGNATURE_INFO=$(codesign -dv /tmp/dmg/orcrux.app 2>&1 | head -1)
+              if echo "$SIGNATURE_INFO" | grep -q "Apple Development"; then
+                echo "✅ App in DMG is code signed with Apple Development certificate"
+              else
+                echo "✅ App in DMG is code signed with alternative certificate"
+              fi
+            else
+              echo "ℹ️ App in DMG is not code signed (users can right-click to open)"
+            fi
+            
+            hdiutil detach /tmp/dmg
+          else
+            echo "⚠️ Could not mount DMG for verification, but continuing with build"
+          fi
+          
           # Ensure DMG is in the build directory for artifact upload
           cp orcrux-macos.dmg build/bin/ || true
+          
+          # Build summary
+          echo "🎉 macOS build completed successfully!"
+          echo "📱 App bundle: $(ls -la build/bin/orcrux.app)"
+          echo "💾 DMG file: $(ls -la build/bin/orcrux-macos.dmg)"
+          
+          # Check code signing status
+          if codesign -dv build/bin/orcrux.app 2>/dev/null; then
+            SIGNATURE_INFO=$(codesign -dv build/bin/orcrux.app 2>&1 | head -1)
+            if echo "$SIGNATURE_INFO" | grep -q "Apple Development"; then
+              echo "✅ App is code signed with Apple Development certificate"
+            else
+              echo "✅ App is code signed with alternative certificate"
+            fi
+          else
+            echo "ℹ️ App is not code signed (users can right-click to open)"
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

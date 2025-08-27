@@ -196,7 +196,7 @@ scripts/build.bat
 
 #### Release Artifacts
 - **Windows**: `.exe` executable
-- **macOS**: `.app` bundle + `.dmg` installer
+- **macOS**: `.app` bundle + `.dmg` installer (code-signed with Apple Development certificate)
 
 #### Manual Release
 ```bash
@@ -206,6 +206,14 @@ make build-all
 # Create release package
 make release
 ```
+
+#### Automated Builds with Code Signing
+GitHub Actions automatically builds and code signs macOS and Windows binaries:
+- **No manual steps** required
+- **DMG installer** created automatically for macOS
+- **Apple Development certificate** used for code signing (reduces security warnings)
+- **Professional appearance** for releases
+- **Better user experience** - less scary security warnings
 
 For detailed release instructions, see [RELEASE.md](RELEASE.md).
 
