@@ -63,18 +63,6 @@ mkdir dist\orcrux-windows-amd64
 xcopy /e /i build\bin dist\orcrux-windows-amd64
 echo [SUCCESS] Built for Windows
 
-REM Build for Linux (cross-compilation)
-echo [INFO] Building for linux/amd64...
-wails build -platform linux/amd64 -clean
-if errorlevel 1 (
-    echo [ERROR] Failed to build for Linux
-    exit /b 1
-)
-
-mkdir dist\orcrux-linux-amd64
-xcopy /e /i build\bin dist\orcrux-linux-amd64
-echo [SUCCESS] Built for Linux
-
 REM Build for macOS (cross-compilation)
 echo [INFO] Building for darwin/amd64...
 wails build -platform darwin/amd64 -clean

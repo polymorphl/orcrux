@@ -39,7 +39,6 @@ make help          # Show all available commands
 make install-deps  # Install dependencies
 make build         # Build for current platform
 make build-all     # Build for all platforms
-make build-linux   # Build for Linux (amd64)
 make build-windows # Build for Windows (amd64)
 make build-darwin  # Build for macOS (amd64)
 make clean         # Clean build artifacts
@@ -77,7 +76,6 @@ scripts/build.bat         # Build all platforms (Windows)
 5. **Release Creation**: Automatically creates GitHub release with artifacts
 
 ### Platforms Supported
-- **Linux (amd64)**: Ubuntu 22.04
 - **Windows (amd64)**: Windows Server 2022
 - **macOS (amd64)**: macOS 13
 
@@ -99,7 +97,6 @@ wails build -platform <platform>/<arch> -clean
 ### 3. Artifact Organization
 ```
 dist/
-├── orcrux-linux-amd64/     # Linux binaries
 ├── orcrux-windows-amd64/   # Windows binaries
 └── orcrux-darwin-amd64/    # macOS binaries
 ```

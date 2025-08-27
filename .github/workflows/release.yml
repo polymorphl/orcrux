@@ -11,12 +11,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, macos-latest]
         include:
-          - os: ubuntu-latest
-            platform: linux
-            arch: amd64
-            extension: ''
           - os: windows-latest
             platform: windows
             arch: amd64
@@ -82,7 +78,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            orcrux-linux-amd64/*
             orcrux-windows-amd64/*
             orcrux-darwin-amd64/*
           draft: false

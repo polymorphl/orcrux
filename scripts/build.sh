@@ -90,7 +90,6 @@ main() {
     mkdir -p dist/
     
     # Build for all platforms
-    build_platform "linux" "amd64" ""
     build_platform "windows" "amd64" ".exe"
     build_platform "darwin" "amd64" ""
     

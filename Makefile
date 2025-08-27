@@ -13,7 +13,7 @@ help:
 	@echo "  install-deps  - Install all dependencies"
 	@echo "  build         - Build for current platform"
 	@echo "  build-all     - Build for all platforms"
-	@echo "  build-linux   - Build for Linux (amd64)"
+
 	@echo "  build-windows - Build for Windows (amd64)"
 	@echo "  build-darwin  - Build for macOS (amd64)"
 	@echo "  clean         - Clean build artifacts"
@@ -42,9 +42,6 @@ build: build-frontend
 build-all: build-frontend
 	@echo "Building for all platforms..."
 	@mkdir -p dist
-	@wails build -platform linux/amd64 -clean
-	@mkdir -p dist/orcrux-linux-amd64
-	@cp -r build/bin/* dist/orcrux-linux-amd64/
 	@wails build -platform windows/amd64 -clean
 	@mkdir -p dist/orcrux-windows-amd64
 	@cp -r build/bin/* dist/orcrux-windows-amd64/
@@ -52,11 +49,6 @@ build-all: build-frontend
 	@mkdir -p dist/orcrux-darwin-amd64
 	@cp -r build/bin/* dist/orcrux-darwin-amd64/
 	@echo "All builds completed successfully!"
-
-# Build for Linux
-build-linux: build-frontend
-	@echo "Building for Linux..."
-	@wails build -platform linux/amd64 -clean
 
 # Build for Windows
 build-windows: build-frontend

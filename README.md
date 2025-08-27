@@ -171,7 +171,6 @@ make help
 make build-all
 
 # Build for specific platform
-make build-linux
 make build-windows
 make build-darwin
 
@@ -181,7 +180,7 @@ make clean
 
 #### Using Build Scripts
 ```bash
-# On macOS/Linux
+# On macOS
 ./scripts/build.sh
 
 # On Windows
