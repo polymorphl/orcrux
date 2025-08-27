@@ -1,9 +1,7 @@
 name: Build and Release
 
-# This workflow builds Orcrux for Windows and macOS, with intelligent code signing
-# for macOS. It tries to use Apple Development certificates from GitHub secrets
-# first, then falls back to self-signed certificates if needed. This provides
-# the best possible user experience while ensuring builds always succeed.
+# This workflow builds Orcrux for Windows and macOS, creating professional
+# DMG installers for macOS.
 
 on:
   push:
@@ -61,41 +59,12 @@ jobs:
         run: |
           wails build -platform ${{ matrix.platform }}/${{ matrix.arch }} -clean
 
-      - name: Code Sign macOS App
+      - name: Prepare macOS App
         if: matrix.platform == 'darwin'
         shell: bash
         run: |
-          echo "Setting up code signing..."
-          
-          # Create temporary keychain
-          security create-keychain -p "" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "" build.keychain
-          security set-keychain-settings build.keychain
-          
-          # Import certificate and private key
-          echo "${{ secrets.MACOS_CERTIFICATE }}" | base64 -d > build.crt
-          echo "${{ secrets.MACOS_PRIVATE_KEY }}" | base64 -d > build.key
-          
-          # Import to keychain
-          security import build.crt -k build.keychain
-          security import build.key -k build.keychain
-          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
-          
-          # Find and use the certificate
-          IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Apple Development" | head -1 | awk -F'"' '{print $2}')
-          
-          if [ -n "$IDENTITY" ]; then
-            echo "Code signing with: $IDENTITY"
-            codesign --force --deep --sign "$IDENTITY" build/bin/orcrux.app
-            echo "Code signing completed"
-          else
-            echo "No certificate found, app will be unsigned"
-          fi
-          
-          # Cleanup
-          rm -f build.crt build.key
-          security delete-keychain build.keychain
+          echo "Preparing macOS app for DMG creation..."
+          echo "App bundle created: $(ls -la build/bin/orcrux.app)"
 
       - name: Create DMG for macOS
         if: matrix.platform == 'darwin'

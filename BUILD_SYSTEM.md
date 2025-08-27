@@ -27,7 +27,7 @@ The build system consists of multiple components working together:
 make build-all
 
 # Or use build scripts
-./scripts/build.sh        # macOS/Linux
+./scripts/build.sh        # macOS
 scripts/build.bat         # Windows
 ```
 
@@ -58,7 +58,7 @@ make release       # Create release package
 
 ### Build Scripts
 ```bash
-./scripts/build.sh        # Build all platforms (macOS/Linux)
+./scripts/build.sh        # Build all platforms (macOS)
 scripts/build.bat         # Build all platforms (Windows)
 ```
 
@@ -77,7 +77,7 @@ scripts/build.bat         # Build all platforms (Windows)
 
 ### Platforms Supported
 - **Windows (amd64)**: Windows Server 2022
-- **macOS (amd64)**: macOS 13
+- **macOS (amd64)**: macOS 13 with DMG installer
 
 ## 🛠️ Build Process
 

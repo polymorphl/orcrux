@@ -29,7 +29,8 @@ Before creating a release, ensure you have:
 ### 2. Automated Release (Recommended)
 
 The GitHub Actions workflow will automatically:
-- Build binaries for all platforms (Linux, Windows, macOS)
+- Build binaries for Windows and macOS
+- Create DMG installers for macOS
 - Create a GitHub release with the tag
 - Upload all build artifacts
 
@@ -54,7 +55,7 @@ make release
 
 #### Using Build Scripts
 ```bash
-# On macOS/Linux
+# On macOS
 chmod +x scripts/build.sh
 ./scripts/build.sh
 
@@ -68,7 +69,6 @@ scripts/build.bat
 cd frontend && npm run build && cd ..
 
 # Build for each platform
-wails build -platform linux/amd64 -clean
 wails build -platform windows/amd64 -clean
 wails build -platform darwin/amd64 -clean
 ```
@@ -77,9 +77,8 @@ wails build -platform darwin/amd64 -clean
 
 Each release should include:
 
-- **Linux (amd64)**: `orcrux-linux-amd64/` directory
 - **Windows (amd64)**: `orcrux-windows-amd64/` directory  
-- **macOS (amd64)**: `orcrux-darwin-amd64/` directory
+- **macOS (amd64)**: `orcrux-darwin-amd64/` directory with DMG installer
 
 ### 5. GitHub Release
 
@@ -110,7 +109,6 @@ make release       # Create release package
 ### Wails Commands
 ```bash
 wails build                    # Build for current platform
-wails build -platform linux/amd64    # Build for Linux
 wails build -platform windows/amd64  # Build for Windows
 wails build -platform darwin/amd64   # Build for macOS
 wails build -clean            # Clean build before building
@@ -145,11 +143,6 @@ wails dev                     # Start development mode
    go install github.com/wailsapp/wails/v2/cmd/wails@latest
    ```
 
-### Platform-Specific Notes
-
-- **Linux**: Builds should work on most Linux distributions
-- **Windows**: Cross-compilation from Linux/macOS works well
-- **macOS**: Universal builds (Intel + Apple Silicon) are supported
 
 ## Release Checklist
 
