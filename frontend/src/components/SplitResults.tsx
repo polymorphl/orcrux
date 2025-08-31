@@ -25,9 +25,9 @@ export default function SplitResults({ results, onBack, onDownload }: SplitResul
       </div>
       <div className="my-4 flex justify-start items-center gap-2">
         <Button disabled={!results.data} size="sm" onClick={() => onDownload(results.data!)}>
-          <Icon icon="Download" className="w-4 h-4" />&nbsp;Download
+          <Icon icon="Download" className="w-4 h-4" />&nbsp;Save As...
         </Button>
-        <p className="text-sm text-crystal-200">This will download the shards as a txt file on your local machine.</p>
+        <p className="text-sm text-crystal-200">This will open a save dialog to choose where to save the shards as a txt file.</p>
       </div>
       <hr className="my-4 border-crystal-500/20" />
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 max-h-[200px] overflow-y-auto">

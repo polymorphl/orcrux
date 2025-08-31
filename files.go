@@ -7,42 +7,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// SaveFile writes the provided content to a file at the specified path.
-//
-// This function creates a new file or overwrites an existing file with the given
-// content. The file is created with standard permissions (0644) which provides
-// read/write access for the owner and read access for group and others.
-//
-// Parameters:
-//   - path: The file path where content will be written (cannot be empty)
-//   - content: The byte array to write to the file (cannot be empty)
-//
-// Returns:
-//   - An error if the path is empty, content is empty, or if file I/O operations fail
-//
-// Example usage:
-//
-//	err := app.SaveFile("/path/to/file.txt", []byte("Hello, World!"))
-//	if err != nil {
-//	    log.Printf("Failed to save file: %v", err)
-//	}
-func (a *App) SaveFile(path string, content []byte) error {
-	if path == "" {
-		return errors.New("path is required")
-	}
-
-	if len(content) == 0 {
-		return errors.New("content is required")
-	}
-
-	err := os.WriteFile(path, content, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // UploadFile opens a file dialog for the user to select a text file and reads its contents.
 //
 // This function presents a native file picker dialog that allows users to browse and
@@ -87,4 +51,56 @@ func (a *App) UploadFile() (string, error) {
 		return "", err
 	}
 	return string(content), nil
+}
+
+// SaveFileDialog opens a file dialog for the user to choose where to save a file and writes the content.
+//
+// This function presents a native file save dialog that allows users to browse and
+// choose where to save their file. The selected path is used to write the provided
+// content. If no path is selected or an error occurs during file operations,
+// appropriate error values are returned.
+//
+// Parameters:
+//   - content: The byte array to write to the file (cannot be empty)
+//   - defaultName: The default filename to suggest in the save dialog
+//
+// Returns:
+//   - An error if content is empty, no path was selected, or if file I/O operations fail
+//
+// File filters:
+//   - Only text files (*.txt) are shown in the file picker
+//
+// Example usage:
+//
+//	err := app.SaveFileDialog([]byte("Hello, World!"), "shards.txt")
+//	if err != nil {
+//	    log.Printf("Failed to save file: %v", err)
+//	}
+func (a *App) SaveFileDialog(content []byte, defaultName string) error {
+	if len(content) == 0 {
+		return errors.New("content is required")
+	}
+
+	fd := runtime.SaveDialogOptions{
+		Title:           "Save shards file",
+		DefaultFilename: defaultName,
+		Filters: []runtime.FileFilter{
+			{DisplayName: "Text files", Pattern: "*.txt"},
+		},
+	}
+
+	path, err := runtime.SaveFileDialog(a.ctx, fd)
+	if err != nil {
+		return err
+	}
+	if path == "" {
+		return nil // User cancelled the dialog
+	}
+
+	err = os.WriteFile(path, content, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
